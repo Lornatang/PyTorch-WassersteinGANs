@@ -43,17 +43,14 @@ class MLP_Generate(nn.Module):
     )
 
   def forward(self, x):
-    if self.ngpu > 1:
-      x = nn.parallel.data_parallel(self.main, x, range(self.ngpu))
-    else:
-      x = self.main(x)
+    x = self.main(x)
     return x.view(x.size(0), self.nc, self.img_size, self.img_size)
 
 
-class MLP_Dicriminator(nn.Module):
+class MLP_Discriminator(nn.Module):
 
   def __init__(self, opt):
-    super(MLP_Dicriminator, self).__init__()
+    super(MLP_Discriminator, self).__init__()
 
     self.nc = opt.nc
     self.img_size = opt.img_size
@@ -69,8 +66,5 @@ class MLP_Dicriminator(nn.Module):
 
   def forward(self, x):
     x = x.view(x.size(0), -1)
-    if self.ngpu > 1:
-      x = nn.parallel.data_parallel(self.main, x, range(self.ngpu))
-    else:
-      x = self.main(x)
+    x = self.main(x)
     return x

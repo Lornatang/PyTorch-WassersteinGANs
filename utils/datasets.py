@@ -21,7 +21,7 @@ import torchvision.transforms as transforms
 
 
 def load_datasets(opt):
-  dataset = datasets.CIFAR10(root=opt.root,
+  dataset = datasets.CIFAR10(root=opt.dataroot,
                              download=True,
                              train=True,
                              transform=transforms.Compose([
