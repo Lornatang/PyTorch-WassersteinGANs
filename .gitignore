@@ -121,3 +121,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# IDE file
+.idea
+.vscode
+
+# Mac file
+.DS_Store
+
+# checkpoint file
+*.pth
