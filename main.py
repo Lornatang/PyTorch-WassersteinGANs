@@ -20,8 +20,8 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data
 from torch.optim.rmsprop import RMSprop
 
-from model.mlp import MLP_Discriminator
-from model.mlp import MLP_Generate
+from model.cnn import Discriminator
+from model.cnn import Generator
 from utils.datasets import load_datasets
 from utils.visual import save_image
 
@@ -68,7 +68,7 @@ if torch.cuda.is_available() and not opt.cuda:
 
 device = torch.device("cuda:0" if opt.cuda else "cpu")
 
-fixed_noise = torch.randn(opt.batch_size, opt.nz, device=device)
+fixed_noise = torch.randn(opt.batch_size, opt.nz, 1, 1, device=device)
 
 
 def main():
@@ -82,16 +82,16 @@ def main():
   dataloader = load_datasets(opt)
 
   if torch.cuda.device_count() > 1:
-    netG = torch.nn.DataParallel(MLP_Generate(opt))
+    netG = torch.nn.DataParallel(Generator(opt))
   else:
-    netG = MLP_Generate(opt)
+    netG = Generator(opt)
   if opt.netG != '':
     netG.load_state_dict(torch.load(opt.netG, map_location=lambda storage, loc: storage))
 
   if torch.cuda.device_count() > 1:
-    netD = torch.nn.DataParallel(MLP_Discriminator(opt))
+    netD = torch.nn.DataParallel(Discriminator(opt))
   else:
-    netD = MLP_Discriminator(opt)
+    netD = Discriminator(opt)
   if opt.netD != '':
     netD.load_state_dict(torch.load(opt.netD, map_location=lambda storage, loc: storage))
 
@@ -115,7 +115,7 @@ def main():
   print("########################################")
   print(f"train dataset path: {opt.dataroot}")
   print(f"batch size: {opt.batch_size}")
-  print(f"image size: {opt.image_size}")
+  print(f"image size: {opt.img_size}")
   print(f"Epochs: {opt.n_epochs}")
   print(f"Noise size: {opt.nz}")
   print("########################################")
@@ -127,7 +127,7 @@ def main():
       batch_size = real_imgs.size(0)
 
       # Sample noise as generator input
-      z = torch.randn(batch_size, opt.nz, device=device)
+      z = torch.randn(batch_size, opt.nz, 1, 1, device=device)
 
       ##############################################
       # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))

@@ -36,7 +36,7 @@ class Generator(nn.Module):
     super(Generator, self).__init__()
 
     self.nz = opt.nz
-    self.ngpu = opt.gpus
+    self.nc = opt.nc
 
     self.main = nn.Sequential(
       # inputs is Z, going into a convolution
@@ -52,7 +52,7 @@ class Generator(nn.Module):
       nn.BatchNorm2d(64),
       nn.ReLU(True),
       # state size. 64 x 16 x 16
-      nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
+      nn.ConvTranspose2d(64, self.nc, 4, 2, 1, bias=False),
       nn.Tanh()
       # state size. 3 x 32 x 32
     )
@@ -64,10 +64,7 @@ class Generator(nn.Module):
     Returns:
       forwarded data.
     """
-    if self.ngpu > 1:
-      x = nn.parallel.data_parallel(self.main, x, range(self.ngpu))
-    else:
-      x = self.main(x)
+    x = self.main(x)
     return x
 
 
@@ -79,7 +76,6 @@ class Discriminator(nn.Module):
     super(Discriminator, self).__init__()
 
     self.nc = opt.nc
-    self.ngpu = opt.gpus
 
     self.main = nn.Sequential(
       # inputs is 3 x 32 x 32
@@ -104,8 +100,5 @@ class Discriminator(nn.Module):
     Returns:
       forwarded data.
     """
-    if self.ngpu > 1:
-      x = nn.parallel.data_parallel(self.main, x, range(self.ngpu))
-    else:
-      x = self.main(x)
+    x = self.main(x)
     return x

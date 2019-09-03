@@ -17,10 +17,10 @@
 import torch.nn as nn
 
 
-class MLP_Generate(nn.Module):
+class MLP_Generator(nn.Module):
 
   def __init__(self, opt):
-    super(MLP_Generate, self).__init__()
+    super(MLP_Generator, self).__init__()
 
     self.nz = opt.nz
     self.nc = opt.nc
