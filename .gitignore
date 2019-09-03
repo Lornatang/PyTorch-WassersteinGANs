@@ -128,6 +128,3 @@ dmypy.json
 
 # Mac file
 .DS_Store
-
-# checkpoint file
-*.pth
