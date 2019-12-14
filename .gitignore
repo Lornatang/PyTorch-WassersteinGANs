@@ -125,6 +125,7 @@ datasets
 
 # generate imgs folder
 unknown/
+imgs/
 
 # Model file
 checkpoints/
