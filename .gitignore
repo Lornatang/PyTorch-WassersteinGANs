@@ -114,8 +114,7 @@ dmypy.json
 .pyre/
 
 # datasets
-datasets/MNIST
-datasets/faces
+datasets
 
 # IDE file
 .idea
