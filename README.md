@@ -1,65 +1,83 @@
-### PyTorch-WGAN
- 
-Please refer to https://zhuanlan.zhihu.com/p/25071913
+## Deep Convolution Generative Adversarial Networks
 
-#### Args
+### Introduction
+
+This example implements the paper [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](http://arxiv.org/abs/1511.06434)
+
+The implementation is very close to the Torch implementation [main.py](https://github.com/Lornatang/PyTorch-DCGAN/main.py)
+
+After every 100 training iterations, the files `real_samples.png` and `fake_samples.png` are written to disk
+with the samples from the generative model.
+
+After every epoch, models are saved to: `netG_epoch_%d.pth` and `netD_epoch_%d.pth`
+
+#### Configure
+
+- [PyTorch](https://pytorch.org) > 1.3.0
+- GTX 1080 Ti
+
+### Load dataset
+
+- [baidu netdisk](https://pan.baidu.com/s/1eSifHcA) password：`g5qa`
+
+**download data put on ./datasets folder.**
+
+Thanks [何之源](https://www.zhihu.com/people/he-zhi-yuan-16)
 
 ```text
-Namespace(batch_size=64, beta1=0.5, beta2=0.999, checkpoints_dir='./checkpoints', clip_value=0.01, cuda=True, dataroot='/input/pytorch_datasets/', img_size=32, lr=5e-05, manualSeed=None, n_critic=5, n_epochs=200, nc=3, netD='', netG='', ngpu=1, nz=100, out_images='./imgs', phase='eval', sample_size=1000)
+datasets/
+└── faces/
+    ├── 0000fdee4208b8b7e12074c920bc6166-0.jpg
+    ├── 0001a0fca4e9d2193afea712421693be-0.jpg
+    ├── 0001d9ed32d932d298e1ff9cc5b7a2ab-0.jpg
+    ├── 0001d9ed32d932d298e1ff9cc5b7a2ab-1.jpg
+    ├── 00028d3882ec183e0f55ff29827527d3-0.jpg
+    ├── 00028d3882ec183e0f55ff29827527d3-1.jpg
+    ├── 000333906d04217408bb0d501f298448-0.jpg
+    ├── 0005027ac1dcc32835a37be806f226cb-0.jpg
 ```
 
-#### Model struct
+#### Purpose
 
-```text
-Generator(
-  (main): Sequential(
-    (0): ConvTranspose2d(100, 256, kernel_size=(4, 4), stride=(1, 1), bias=False)
-    (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (2): ReLU(inplace)
-    (3): ConvTranspose2d(256, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (5): ReLU(inplace)
-    (6): ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (7): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (8): ReLU(inplace)
-    (9): ConvTranspose2d(64, 3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (10): Tanh()
-  )
-)
-Discriminator(
-  (main): Sequential(
-    (0): Conv2d(3, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (1): LeakyReLU(negative_slope=0.2, inplace)
-    (2): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (3): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (4): LeakyReLU(negative_slope=0.2, inplace)
-    (5): Conv2d(128, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-    (6): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (7): LeakyReLU(negative_slope=0.2, inplace)
-    (8): Conv2d(256, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
-  )
-)
-```
+Use a stable DCGAN structure to generate avatar images of anime girls.
 
 #### Usage
 
+- train
+
+if you want pretrain generate model, 
+click it **[netg_200.pth](http://pytorch-1252820389.cosbj.myqcloud.com/netg_200.pth)**
+
+if you want pretrain discriminate model, 
+click it **[netd_200.pth](http://pytorch-1252820389.cosbj.myqcloud.com/netd_200.pth)**
+
+please rename model name. `netd_200.pth` -> `D.pth` and `netg_200.pth` -> `G.pth`
+
+start run:
 ```text
-git clone https://github.com/Lornatang/PyTorch-WGAN.git
-cd PyTorch-WGAN/ 
-python3 main.py --dataroot ${Datasets path} --cuda
+python main.py
 ```
 
-You can use my pre-training model for quick testing.
-
-Model file in `checkpoints` directory.
-
-just run
+- test
 
 ```text
-python3 main.py --cuda --netG checkpoints/netG_epoch_200.pth --netD checkpoints/netD_epoch_200.pth  
+python main.py --phase generate
 ```
 
-#### LICENSE
+#### Example
 
-Apache License Version 2.0, January 2004
-http://www.apache.org/licenses/
+- epoch 1
+
+![epoch1.png](https://github.com/Lornatang/PyTorch-DCGAN/blob/master/assets/epoch1.png)
+
+- epoch 30
+
+![epoch30.png](https://github.com/Lornatang/PyTorch-DCGAN/blob/master/assets/epoch30.png)
+
+- epoch 100
+
+![epoch100.png](https://github.com/Lornatang/PyTorch-DCGAN/blob/master/assets/epoch100.png)
+
+- epoch 200
+
+![epoch200.png](https://github.com/Lornatang/PyTorch-DCGAN/blob/master/assets/epoch200.png)
