@@ -256,8 +256,8 @@ def train():
         vutils.save_image(fake.detach(), f"{opt.outf}/fake_samples_epoch_{epoch + 1}.png", normalize=True)
 
     # do checkpointing
-    torch.save(netG.state_dict(), f"{opt.checkpoint_dir}/netG_epoch_{epoch + 1:03d}.pth")
-    torch.save(netD.state_dict(), f"{opt.checkpoint_dir}/netD_epoch_{epoch + 1:03d}.pth")
+    torch.save(netG.state_dict(), f"{opt.checkpoint_dir}/G.pth")
+    torch.save(netD.state_dict(), f"{opt.checkpoint_dir}/D.pth")
 
 
 def generate():
