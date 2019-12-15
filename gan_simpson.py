@@ -51,7 +51,7 @@ opt = parser.parse_args()
 try:
   os.makedirs(opt.outf)
   os.makedirs("unknown")
-  os.makedirs(f"{opt.checkpoint_dir}")
+  os.makedirs(opt.checkpoint_dir)
 except OSError:
   pass
 
