@@ -25,7 +25,8 @@ import torchvision.utils as vutils
 import torchsummary
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataroot', type=str, default='./datasets', help='path to datasets')
+parser.add_argument('--root', type=str, default="./datasets/" ,help='path to datasets. Must choice it')
+parser.add_argument('--dataname', type=str,help='path to datasets. Must choice it')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 parser.add_argument('--batch_size', type=int, default=64, help='inputs batch size')
 parser.add_argument('--img_size', type=int, default=64, help='the height / width of the inputs image to network')
@@ -35,7 +36,7 @@ parser.add_argument('--beta2', type=float, default=0.999, help='beta2 for adam. 
 parser.add_argument('--nz', type=int, default=100, help='size of the latent z vector')
 parser.add_argument('--ngf', type=int, default=64)
 parser.add_argument('--ndf', type=int, default=64)
-parser.add_argument('--epochs', type=int, default=200, help="Train loop")
+parser.add_argument('--epochs', type=int, default=800, help="Train loop")
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--netG', default='', help="path to netG (to continue training)")
 parser.add_argument('--netD', default='', help="path to netD (to continue training)")
@@ -47,6 +48,9 @@ parser.add_argument('--manualSeed', type=int, help='manual seed')
 parser.add_argument('--phase', type=str, default='train', help='model mode. default=`train`, option=`generate`')
 
 opt = parser.parse_args()
+
+# get datasets path
+dataroot = os.path.join(opt.root, opt.dataname)
 
 try:
   os.makedirs(opt.outf)
@@ -69,12 +73,12 @@ ngf = int(opt.ngf)
 ndf = int(opt.ndf)
 
 
-dataset = dset.ImageFolder(root=opt.dataroot,
-                            transform=transforms.Compose([
-                              transforms.Resize(opt.img_size),
-                              transforms.ToTensor(),
-                              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                            ]))
+dataset = dset.ImageFolder(root=dataroot,
+                           transform=transforms.Compose([
+                             transforms.Resize(opt.img_size),
+                             transforms.ToTensor(),
+                             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                          ]))
 
 assert dataset
 dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
@@ -194,7 +198,7 @@ def train():
   """ train model
   """
   print("########################################")
-  print(f"Train dataset path: {opt.dataroot}")
+  print(f"Train dataset path: {dataroot}")
   print(f"Batch size: {opt.batch_size}")
   print(f"Image size: {opt.img_size}")
   print(f"Epochs: {opt.epochs}")
@@ -219,9 +223,7 @@ def train():
       fake_imgs = netG(noise).detach()
 
       # Adversarial loss
-      real_output = netD(real_imgs)
-      fake_output = netD(fake_imgs)
-      errD = -torch.mean(real_output) + torch.mean(fake_output)
+      errD = -torch.mean(netD(real_imgs)) + torch.mean(netD(fake_imgs))
 
       errD.backward()
       optimizerD.step()
@@ -251,13 +253,13 @@ def train():
               f"Loss_G: {errG.item():.4f} ", end="\r")
 
       if i % 100 == 0:
-        vutils.save_image(real_imgs, f"{opt.outf}/real_samples.png", normalize=True)
+        vutils.save_image(real_imgs, f"{opt.outf}/{opt.dataname}_real_samples.png", normalize=True)
         fake = netG(fixed_noise)
-        vutils.save_image(fake.detach(), f"{opt.outf}/fake_samples_epoch_{epoch + 1}.png", normalize=True)
+        vutils.save_image(fake.detach(), f"{opt.outf}/{opt.dataname}_fake_samples_epoch_{epoch + 1}.png", normalize=True)
 
     # do checkpointing
-    torch.save(netG.state_dict(), f"{opt.checkpoint_dir}/G.pth")
-    torch.save(netD.state_dict(), f"{opt.checkpoint_dir}/D.pth")
+    torch.save(netG.state_dict(), f"{opt.checkpoint_dir}/{opt.dataname}_G.pth")
+    torch.save(netD.state_dict(), f"{opt.checkpoint_dir}/{opt.dataname}_D.pth")
 
 
 def generate():
@@ -270,12 +272,11 @@ def generate():
   netG = Generator(ngpu).to(device)
   if opt.netG != "":
     netG.load_state_dict(torch.load(opt.netG))
-  print(f"Load model successful!")
+  print(f"Load {opt.dataname} model successful!")
   with torch.no_grad():
     for i in range(64):
       z = torch.randn(1, opt.nz, 1, 1, device=device)
-      fake = netG(z)
-      vutils.save_image(fake.detach(), f"unknown/fake_{i + 1:04d}.png", normalize=True)
+      vutils.save_image(netG(z).detach(), f"unknown/{opt.dataname}_fake_{i + 1:04d}.png", normalize=True)
   print("Images have been generated!")
 
 if __name__ == '__main__':
