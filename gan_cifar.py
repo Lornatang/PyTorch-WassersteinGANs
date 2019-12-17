@@ -246,7 +246,6 @@ def train():
 
         errG.backward()
         optimizerG.step()
-      if i % 20 == 0:
         print(f"Epoch->[{epoch + 1:3d}/{opt.epochs}] "
               f"Progress->[{i}/{len(dataloader)}] "
               f"Loss_D: {errD.item():.4f} "
