@@ -15,14 +15,14 @@
 import argparse
 import os
 import random
-import torch.nn as nn
+
 import torch.backends.cudnn as cudnn
-from torch.optim.rmsprop import RMSprop
+import torch.nn as nn
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
-import torchsummary
+from torch.optim.rmsprop import RMSprop
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataroot', type=str, default="./datasets/simpson",
@@ -43,7 +43,7 @@ parser.add_argument('--nz', type=int, default=100,
                     help='size of the latent z vector')
 parser.add_argument('--ngf', type=int, default=64)
 parser.add_argument('--ndf', type=int, default=64)
-parser.add_argument('--epochs', type=int, default=800, help="Train loop")
+parser.add_argument('--epochs', type=int, default=500, help="Train loop")
 parser.add_argument('--ngpu', type=int, default=1,
                     help='number of GPUs to use')
 parser.add_argument('--netG', default='',
@@ -255,7 +255,6 @@ def train():
 
         errG.backward()
         optimizerG.step()
-      if i % 20 == 0:
         print(f"Epoch->[{epoch + 1:3d}/{opt.epochs}] "
               f"Progress->[{i}/{len(dataloader)}] "
               f"Loss_D: {errD.item():.4f} "
