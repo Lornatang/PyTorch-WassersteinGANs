@@ -207,25 +207,27 @@ class Discriminator(nn.Module):
     return outputs.view(-1, 1).squeeze(1)
 
 
-
 def train():
   """ train model
   """
-  dataset = dset.ImageFolder(root=opt.dataroot,
-                             transform=transforms.Compose([
-                               transforms.ToTensor(),
-                               transforms.Normalize(
-                                 (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                             ]))
+  dataset = dset.CIFAR10(root=opt.dataroot,
+                         download=True,
+                         train=True,
+                         transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                         ]))
 
   dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, num_workers=int(opt.workers))
 
   if torch.cuda.device_count() > 1:
-    netG = torch.nn.DataParallel(Generator(opt.ngpu)).to(device)
-    netD = torch.nn.DataParallel(Discriminator(opt.ngpu)).to(device)
+    netG = torch.nn.DataParallel(Generator(opt.ngpu))
+    netD = torch.nn.DataParallel(Discriminator(opt.ngpu))
   else:
     netG = Generator(opt.ngpu)
     netD = Discriminator(opt.ngpu)
+  netG.to(device)
+  netD.to(device)
   if opt.netG != "":
     netG.load_state_dict(torch.load(opt.netG, map_location=lambda storage, loc: storage))
   if opt.netD != "":
