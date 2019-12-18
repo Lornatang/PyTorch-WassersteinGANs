@@ -15,13 +15,17 @@
 import argparse
 import os
 import random
-import torch.nn as nn
+
 import torch.backends.cudnn as cudnn
-from torch.optim.rmsprop import RMSprop
+import torch.nn as nn
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
+from torch.optim.rmsprop import RMSprop
+
+from wassersteinGANs.model.cnn import Discriminator
+from wassersteinGANs.model.cnn import Generator
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataroot', type=str,
@@ -83,86 +87,6 @@ ngf = int(opt.ngf)
 ndf = int(opt.ndf)
 
 
-class Generator(nn.Module):
-  """ generate model
-  """
-
-  def __init__(self, ngpu):
-    super(Generator, self).__init__()
-    self.ngpu = ngpu
-
-    def block(in_features, out_features, normalize=True):
-      """ simple layer struct.
-      Args:
-        in_features: input feature.
-        out_features: output feature.
-        normalize: is normalize.
-      Returns:
-        new layer.
-      """
-      layers = [nn.Linear(in_features, out_features)]
-      if normalize:
-        layers.append(nn.BatchNorm1d(out_features, 0.8))
-      layers.append(nn.LeakyReLU(0.2, inplace=True))
-      return layers
-
-    self.main = nn.Sequential(
-      *block(100, 128, normalize=False),
-      *block(128, 256),
-      *block(256, 512),
-      *block(512, 1024),
-      nn.Linear(1024, 784),
-      nn.Tanh()
-    )
-
-  def forward(self, inputs):
-    """ forward layer
-    Args:
-      inputs: input tensor data.
-    Returns:
-      forwarded data.
-    """
-    if torch.cuda.is_available() and self.ngpu > 1:
-      outputs = nn.parallel.data_parallel(
-        self.main, inputs, range(self.ngpu))
-    else:
-      outputs = self.main(inputs)
-    return outputs.view(outputs.size(0), *(1, 28, 28))
-
-
-class Discriminator(nn.Module):
-  """ discriminate model
-  """
-
-  def __init__(self, ngpu):
-    super(Discriminator, self).__init__()
-    self.ngpu = ngpu
-
-    self.main = nn.Sequential(
-      nn.Linear(784, 512),
-      nn.LeakyReLU(0.2, inplace=True),
-      nn.Linear(512, 256),
-      nn.LeakyReLU(0.2, inplace=True),
-      nn.Linear(256, 1),
-      nn.Sigmoid()
-    )
-
-  def forward(self, inputs):
-    """ forward layer
-    Args:
-      inputs: input tensor data.
-    Returns:
-      forwarded data.
-    """
-    inputs = inputs.view(inputs.size(0), -1)
-    if torch.cuda.is_available() and self.ngpu > 1:
-      outputs = nn.parallel.data_parallel(
-        self.main, inputs, range(self.ngpu))
-    else:
-      outputs = self.main(inputs)
-    return outputs
-
-
 def train():
   """ train model
   """
@@ -179,11 +103,13 @@ def train():
                                            shuffle=True, num_workers=int(opt.workers))
 
   if torch.cuda.device_count() > 1:
-    netG = torch.nn.DataParallel(Generator(opt.ngpu)).to(device)
-    netD = torch.nn.DataParallel(Discriminator(opt.ngpu)).to(device)
+    netG = torch.nn.DataParallel(Generator(ngpu))
+    netD = torch.nn.DataParallel(Discriminator(ngpu))
   else:
-    netG = Generator(opt.ngpu)
-    netD = Discriminator(opt.ngpu)
+    netG = Generator(ngpu)
+    netD = Discriminator(ngpu)
+  netD.to(device)
+  netG.to(device)
   if opt.netG != "":
     netG.load_state_dict(torch.load(opt.netG, map_location=lambda storage, loc: storage))
   if opt.netD != "":
@@ -270,14 +196,15 @@ def generate():
   ################################################
   print(f"Load model...\n")
   if torch.cuda.device_count() > 1:
-    netG = torch.nn.DataParallel(Generator(opt.ngpu)).to(device)
+    netG = torch.nn.DataParallel(Generator(ngpu))
   else:
-    netG = Generator(opt.ngpu)
+    netG = Generator(ngpu)
   netG.load_state_dict(torch.load(opt.netG, map_location=lambda storage, loc: storage))
-  print(f"Load {opt.dataname} model successful!")
+  netG.to(device)
+  print(f"Load mnist model successful!")
   with torch.no_grad():
     for i in range(64):
-      z = torch.randn(1, opt.nz, device=device)
+      z = torch.randn(64, opt.nz, device=device)
       vutils.save_image(
         netG(z).detach(), f"unknown/mnist_fake_{i + 1:04d}.png", normalize=True)
   print("Images have been generated!")
