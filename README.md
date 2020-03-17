@@ -1,5 +1,7 @@
 ## Deep Convolution Generative Adversarial Networks
 
+PyTorch-WassersteinGANs has been deprecated. Please see [WassersteinGAN-PyTorch](https://github.com/Lornatang/WassersteinGAN-PyTorch), which includes implementations for all models in WassersteinGAN.
+
 ### Introduction
 
 This example implements the paper [Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks](http://arxiv.org/abs/1511.06434)
